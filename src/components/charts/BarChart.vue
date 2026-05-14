@@ -56,7 +56,7 @@ const option = computed(() => {
 
   return {
     backgroundColor: 'transparent',
-    grid: { top: 8, right: 8, bottom: 40, left: 8, containLabel: true },
+    grid: { top: 8, right: 8, bottom: 40, left: 56 },
     tooltip: {
       trigger: 'axis',
       backgroundColor: isLight.value ? '#ffffff' : '#1a2a35',

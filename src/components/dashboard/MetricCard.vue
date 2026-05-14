@@ -59,6 +59,8 @@ const changeClass = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
   transition: border-color 0.2s;
 }
 
@@ -70,6 +72,8 @@ const changeClass = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .metric-label {
@@ -77,12 +81,17 @@ const changeClass = computed(() => {
   font-weight: 600;
   color: var(--text-soft);
   text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metric-icon {
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .metric-value {
@@ -90,6 +99,7 @@ const changeClass = computed(() => {
   align-items: baseline;
   gap: 0.5rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .value-text {
@@ -97,6 +107,11 @@ const changeClass = computed(() => {
   font-weight: 800;
   color: var(--text);
   font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metric-change {
@@ -104,6 +119,10 @@ const changeClass = computed(() => {
   font-weight: 700;
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .positive {
@@ -119,5 +138,30 @@ const changeClass = computed(() => {
 .metric-subtitle {
   font-size: 0.7rem;
   color: var(--text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 370px) {
+  .metric-card {
+    padding: 0.85rem;
+    gap: 0.4rem;
+  }
+
+  .metric-label,
+  .metric-change {
+    font-size: 0.66rem;
+  }
+
+  .value-text {
+    font-size: 1.08rem;
+  }
+
+  .metric-subtitle,
+  .metric-icon {
+    font-size: 0.62rem;
+  }
 }
 </style>

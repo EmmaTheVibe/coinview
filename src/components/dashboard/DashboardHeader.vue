@@ -25,8 +25,32 @@
         </button>
       </div>
 
-      <button class="control-btn" :class="{ paused: store.isPaused }" type="button" @click="store.togglePause()">
-        {{ store.isPaused ? "Resume" : "Pause" }}
+      <button
+        class="control-btn icon-btn"
+        :class="{ paused: store.isPaused }"
+        type="button"
+        :aria-label="store.isPaused ? 'Resume stream' : 'Pause stream'"
+        :title="store.isPaused ? 'Resume stream' : 'Pause stream'"
+        @click="store.togglePause()"
+      >
+        <svg
+          v-if="store.isPaused"
+          class="control-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M8 5v14l11-7L8 5Z" fill="currentColor" />
+        </svg>
+        <svg
+          v-else
+          class="control-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M7 5h3v14H7V5ZM14 5h3v14h-3V5Z" fill="currentColor" />
+        </svg>
       </button>
 
       <button
@@ -222,7 +246,8 @@ const lastUpdatedLabel = computed(() => {
   padding: 0;
 }
 
-.theme-icon {
+.theme-icon,
+.control-icon {
   width: 1rem;
   height: 1rem;
 }

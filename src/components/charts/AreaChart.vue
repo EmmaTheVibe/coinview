@@ -48,7 +48,7 @@ const option = computed(() => {
 
   return {
     backgroundColor: 'transparent',
-    grid: { top: 30, right: 8, bottom: 30, left: 8, containLabel: true },
+    grid: { top: 30, right: 8, bottom: 30, left: 44 },
     legend: {
       top: 0,
       textStyle: { color: isLight.value ? '#50616f' : '#8696a0', fontSize: 10 },

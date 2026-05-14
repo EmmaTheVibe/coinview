@@ -10,6 +10,7 @@
     <div class="charts-grid">
       <div class="chart-full">
         <LineChart
+          :key="`price-${chartRenderKey}`"
           :title="`${selectedSymbol} Price`"
           :subtitle="timeRange"
           :data="priceHistory"
@@ -19,11 +20,24 @@
         />
       </div>
 
-      <BarChart title="24h Volume" subtitle="Top coins" :coins="coins" metric="volume" />
-      <BarChart title="24h Change" subtitle="% change" :coins="coins" metric="price_change" />
+      <BarChart
+        :key="`volume-${chartRenderKey}`"
+        title="24h Volume"
+        subtitle="Top coins"
+        :coins="coins"
+        metric="volume"
+      />
+      <BarChart
+        :key="`change-${chartRenderKey}`"
+        title="24h Change"
+        subtitle="% change"
+        :coins="coins"
+        metric="price_change"
+      />
 
       <div class="chart-full">
         <AreaChart
+          :key="`system-${chartRenderKey}`"
           title="System Metrics"
           subtitle="CPU · Memory · Network"
           :data="systemHistory"
@@ -35,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import AreaChart from "@/components/charts/AreaChart.vue";
 import BarChart from "@/components/charts/BarChart.vue";
 import LineChart from "@/components/charts/LineChart.vue";
@@ -52,8 +66,26 @@ const props = defineProps<{
 }>();
 
 const dashboard = useDashboardStore();
+const chartRenderKey = ref(0);
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
 const selectedSymbol = computed(() => props.selectedCoin?.symbol.toUpperCase() ?? "");
+
+function refreshChartsAfterResize() {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    chartRenderKey.value += 1;
+  }, 120);
+}
+
+onMounted(() => {
+  window.addEventListener("resize", refreshChartsAfterResize);
+});
+
+onUnmounted(() => {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  window.removeEventListener("resize", refreshChartsAfterResize);
+});
 </script>
 
 <style scoped>

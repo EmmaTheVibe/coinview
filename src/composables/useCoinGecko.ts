@@ -4,8 +4,10 @@ import type { Coin } from "@/types/market";
 import { useMarketStore } from "@/stores/marketStore";
 
 const BASE = "https://api.coingecko.com/api/v3";
-const POLL_INTERVAL_MS = 15_000;
-const MAX_RECONNECT_DELAY_MS = 30_000;
+const CACHE_KEY = "coinview:markets";
+const CACHE_TTL_MS = 5 * 60_000;
+const POLL_INTERVAL_MS = 60_000;
+const MAX_RECONNECT_DELAY_MS = 5 * 60_000;
 
 export const TRACKED_COINS = [
   "bitcoin",
@@ -63,6 +65,28 @@ function validateCoinsPayload(payload: unknown): Coin[] {
   return coins;
 }
 
+function readCachedMarkets(): { coins: Coin[]; isFresh: boolean } | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+
+    const cached = JSON.parse(raw) as { savedAt?: unknown; coins?: unknown };
+    if (!isNumber(cached.savedAt)) return null;
+
+    return {
+      coins: validateCoinsPayload(cached.coins),
+      isFresh: Date.now() - cached.savedAt < CACHE_TTL_MS,
+    };
+  } catch {
+    localStorage.removeItem(CACHE_KEY);
+    return null;
+  }
+}
+
+function cacheMarkets(coins: Coin[]) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), coins }));
+}
+
 export function useCoinGecko() {
   const store = useMarketStore();
   const error = ref<string | null>(null);
@@ -84,21 +108,38 @@ export function useCoinGecko() {
       },
       timeout: 10_000,
     });
-    return validateCoinsPayload(res.data);
+    const coins = validateCoinsPayload(res.data);
+    cacheMarkets(coins);
+    return coins;
   }
 
   async function initialLoad() {
-    loading.value = true;
+    const cached = readCachedMarkets();
+
+    if (cached) {
+      store.setCoins(cached.coins);
+      store.setStatus("live");
+      error.value = null;
+
+      if (cached.isFresh) {
+        loading.value = false;
+        return;
+      }
+    }
+
+    loading.value = !cached;
     error.value = null;
-    store.setStatus("connecting");
+    if (!cached) store.setStatus("connecting");
 
     try {
       const coins = await fetchMarkets();
       store.setCoins(coins);
       store.setStatus("live");
     } catch (err) {
-      error.value = "Failed to load market data";
-      store.setStatus("error");
+      if (!cached) {
+        error.value = "Failed to load market data";
+        store.setStatus("error");
+      }
     } finally {
       loading.value = false;
     }
@@ -123,10 +164,19 @@ export function useCoinGecko() {
         retryCount = 0;
         scheduleNext(POLL_INTERVAL_MS);
       } catch {
-        store.setStatus("error");
         retryCount += 1;
         const delay = getReconnectDelay();
-        error.value = `Market data unavailable. Reconnecting in ${Math.round(delay / 1000)}s`;
+        const cached = readCachedMarkets();
+
+        if (cached) {
+          store.setCoins(cached.coins);
+          store.setStatus("live");
+          error.value = `Using cached market data. Retrying in ${Math.round(delay / 1000)}s`;
+        } else {
+          store.setStatus("error");
+          error.value = `Market data unavailable. Retrying in ${Math.round(delay / 1000)}s`;
+        }
+
         scheduleNext(delay);
       }
     };
@@ -138,7 +188,7 @@ export function useCoinGecko() {
     };
 
     const getReconnectDelay = () =>
-      Math.min(MAX_RECONNECT_DELAY_MS, 2_000 * 2 ** Math.max(0, retryCount - 1));
+      Math.min(MAX_RECONNECT_DELAY_MS, 30_000 * 2 ** Math.max(0, retryCount - 1));
 
     scheduleNext(POLL_INTERVAL_MS);
   }
