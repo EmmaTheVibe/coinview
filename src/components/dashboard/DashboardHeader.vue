@@ -2,7 +2,8 @@
   <header class="dashboard-header">
     <div class="header-left">
       <div class="logo">
-        <span class="logo-icon" />
+        <!-- <span class="logo-icon" /> -->
+        <img src="/public/favicon.svg" alt="logo" class="logo-img">
         <span class="logo-text">CoinView</span>
       </div>
       <div class="status-pill" :class="store.streamStatus">
@@ -156,12 +157,16 @@ const lastUpdatedLabel = computed(() => {
 .logo { gap: 0.5rem; }
 .header-controls { gap: 0.5rem; flex-wrap: wrap; }
 
-.logo-icon {
+/* .logo-icon {
   width: 0.8rem;
   height: 0.8rem;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent);
+} */
+.logo-img {
+  width: 2rem;
+  height: 2rem;
 }
 
 .logo-text {
